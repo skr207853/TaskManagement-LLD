@@ -6,9 +6,12 @@ import org.eztask.enums.TaskStatus;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class TaskManager {
-    private List<Task> taskList;
+    private final List<Task> taskList;
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     private static volatile TaskManager taskManager = null;
 
@@ -28,34 +31,57 @@ public class TaskManager {
     }
 
     public void addTask(Task task) {
-        taskList.add(task);
+        lock.writeLock().lock();
+        try {
+            taskList.add(task);
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
     public void createTask(String title, String desc, User creater) {
         Task task = new Task(title, desc, creater);
-        taskList.add(task);
+        lock.writeLock().lock();
+        try {
+            taskList.add(task);
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
     public void addComment(Task task, Comment comment) {
-        task.setUpdatedAt(comment.getCreationTime());
-        task.addComment(comment);
+        synchronized (task) {
+            task.setUpdatedAt(comment.getCreationTime());
+            task.addComment(comment);
+        }
     }
 
     public void assignTaskToUser(Task task, User user) {
-        task.setUpdatedAt(LocalDateTime.now());
-        task.setAssignee(user);
+        synchronized (task) {
+            task.setUpdatedAt(LocalDateTime.now());
+            task.setAssignee(user);
+        }
     }
 
     public void updateTaskStatus(Task task, TaskStatus status) {
-        task.setUpdatedAt(LocalDateTime.now());
-        task.setTaskStatus(status);
+        synchronized (task) {
+            task.setUpdatedAt(LocalDateTime.now());
+            task.setTaskStatus(status);
+        }
     }
 
     public void updateTaskPriority(Task task, TaskPriority priority) {
-        task.setUpdatedAt(LocalDateTime.now());
-        task.setTaskPriority(priority);
+        synchronized (task) {
+            task.setUpdatedAt(LocalDateTime.now());
+            task.setTaskPriority(priority);
+        }
     }
     public List<Task> getTaskList() {
-        return new ArrayList<>(taskList);
+        lock.readLock().lock();
+        try {
+            return new ArrayList<>(taskList);
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 }

@@ -6,7 +6,7 @@ import org.eztask.entity.Task;
 import java.util.List;
 
 public class TaskSearcher {
-    private TaskSearchStrategy strategy;
+    private final TaskSearchStrategy strategy;
 
     public TaskSearcher(TaskSearchStrategy strategy) {
         this.strategy = strategy;

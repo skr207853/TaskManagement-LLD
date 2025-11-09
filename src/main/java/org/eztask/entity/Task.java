@@ -4,21 +4,21 @@ import org.eztask.enums.TaskPriority;
 import org.eztask.enums.TaskStatus;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Task {
-    private String id;
-    private String title;
-    private String desc;
+    private final String id;
+    private final String title;
+    private final String desc;
     private User assignee;
     private TaskStatus taskStatus;
     private TaskPriority taskPriority;
-    private LocalDateTime createdAt;
+    private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private User creater;
-    private List<Comment> comments;
+    private final User creater;
+    private final List<Comment> comments;
 
     public Task(String title, String desc, User creater) {
         this.id = UUID.randomUUID().toString();
@@ -26,38 +26,38 @@ public class Task {
         this.desc = desc;
         this.creater = creater;
         this.createdAt = LocalDateTime.now();
-        this.comments = new ArrayList<>();
+        this.comments = new CopyOnWriteArrayList<>();
     }
 
-    public void addComment(Comment comment) {
+    public synchronized void addComment(Comment comment) {
         comments.add(comment);
     }
 
-    public void setAssignee(User assignee) {
+    public synchronized void setAssignee(User assignee) {
         this.assignee = assignee;
     }
 
-    public void setTaskStatus(TaskStatus taskStatus) {
+    public synchronized void setTaskStatus(TaskStatus taskStatus) {
         this.taskStatus = taskStatus;
     }
 
-    public void setTaskPriority(TaskPriority taskPriority) {
+    public synchronized void setTaskPriority(TaskPriority taskPriority) {
         this.taskPriority = taskPriority;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
+    public synchronized void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
 
-    public User getAssignee() {
+    public synchronized User getAssignee() {
         return this.assignee;
     }
 
-    public TaskPriority getTaskPriority() {
+    public synchronized TaskPriority getTaskPriority() {
         return this.taskPriority;
     }
 
-    public TaskStatus getTaskStatus() {
+    public synchronized TaskStatus getTaskStatus() {
         return this.taskStatus;
     }
 
