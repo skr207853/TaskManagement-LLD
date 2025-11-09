@@ -9,6 +9,8 @@ public class TaskCreaterSearchStrategy implements TaskSearchStrategy {
     public boolean matches(Task task, Object criteria) {
         if (!(criteria instanceof User)) return false;
         User creater = (User) criteria;
-        return task.getCreater().getName().equals(creater.getName());
+        return task.getCreater() != null 
+            && task.getCreater().getName() != null 
+            && task.getCreater().getName().equals(creater.getName());
     }
 }

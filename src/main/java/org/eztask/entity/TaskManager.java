@@ -12,7 +12,7 @@ public class TaskManager {
 
     private static volatile TaskManager taskManager = null;
 
-    private static TaskManager getInstance() {
+    public static TaskManager getInstance() {
         if (taskManager == null) {
             synchronized (TaskManager.class) {
                 if (taskManager == null) {

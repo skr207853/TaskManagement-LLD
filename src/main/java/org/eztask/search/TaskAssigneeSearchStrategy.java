@@ -8,6 +8,8 @@ public class TaskAssigneeSearchStrategy implements TaskSearchStrategy {
     public boolean matches(Task task, Object criteria) {
         if (!(criteria instanceof User)) return false;
         User assignee = (User) criteria;
-        return task.getAssignee().getName().equals(assignee.getName());
+        return task.getAssignee() != null 
+            && task.getAssignee().getName() != null 
+            && task.getAssignee().getName().equals(assignee.getName());
     }
 }

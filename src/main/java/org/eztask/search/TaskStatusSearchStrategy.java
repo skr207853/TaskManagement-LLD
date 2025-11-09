@@ -8,6 +8,6 @@ public class TaskStatusSearchStrategy implements TaskSearchStrategy {
     public boolean matches(Task task, Object criteria) {
         if (!(criteria instanceof TaskStatus)) return false;
         TaskStatus taskStatus = (TaskStatus) criteria;
-        return task.getTaskStatus() == taskStatus;
+        return task.getTaskStatus() != null && task.getTaskStatus() == taskStatus;
     }
 }

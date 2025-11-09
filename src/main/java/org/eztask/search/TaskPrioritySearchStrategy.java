@@ -9,6 +9,6 @@ public class TaskPrioritySearchStrategy implements TaskSearchStrategy {
     public boolean matches(Task task, Object criteria) {
         if (!(criteria instanceof TaskPriority)) return false;
         TaskPriority taskPriority = (TaskPriority) criteria;
-        return task.getTaskPriority() == taskPriority;
+        return task.getTaskPriority() != null && task.getTaskPriority() == taskPriority;
     }
 }
