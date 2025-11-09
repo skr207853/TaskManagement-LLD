@@ -1,5 +1,6 @@
 package org.eztask;
 
+import org.eztask.entity.Comment;
 import org.eztask.entity.Task;
 import org.eztask.entity.User;
 import org.eztask.entity.TaskManager;
@@ -7,51 +8,55 @@ import org.eztask.enums.TaskPriority;
 import org.eztask.enums.TaskStatus;
 import org.eztask.search.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Main {
-    public static void main(String[] args) {
-        System.out.println("------TaskManager-------------");
-        System.out.println("-------START---------");
-        User user1= new User("dummy1");
-        User user2= new User("dummy2");
-        User user3= new User("dummy3");
-        User user4= new User("dummy4");
-
+    public static void main(String[] args) throws InterruptedException {
         TaskManager taskManager = TaskManager.getInstance();
-        taskManager.createTask("Task1", "Description1", user1);
-        taskManager.createTask("Task2", "Description2", user2);
-        taskManager.createTask("Task3", "Description3", user3);
-        taskManager.createTask("Task4", "Description4", user4);
 
-        TaskSearcher taskSearcher = new TaskSearcher(new TaskCreaterSearchStrategy());
-        List<Task> result = taskSearcher.search(taskManager.getTaskList(), user2);
-        TaskPrinter taskPrinter = new TaskPrinter();
-        taskPrinter.printTasks(result);
-        for (Task task: taskManager.getTaskList()) {
-            taskManager.updateTaskStatus(task, TaskStatus.NOT_PICKED);
-            taskManager.updateTaskPriority(task, TaskPriority.MODERATE);
-            System.out.println(task.getCreater().getName());
-            if(task.getCreater().getName().equals(user4.getName())) {
-                taskManager.updateTaskStatus(task, TaskStatus.DEV_IN_PROGRESS);
-                taskManager.updateTaskPriority(task, TaskPriority.HIGH);
-            }
+        User alice = new User("Alice");
+        User bob = new User("Bob");
+        User charlie = new User("Charlie");
+
+        ExecutorService executor = Executors.newFixedThreadPool(5);
+
+        // Add tasks concurrently
+        for (int i = 1; i <= 5; i++) {
+            int taskNum = i;
+            executor.submit(() -> {
+                taskManager.createTask("Task " + taskNum, "Description for task " + taskNum, alice);
+            });
         }
 
-        System.out.println("---------DEV_IN_PROGRESS-------");
-        taskSearcher = new TaskSearcher(new TaskStatusSearchStrategy());
-        result = taskSearcher.search(taskManager.getTaskList(), TaskStatus.DEV_IN_PROGRESS);
-        taskPrinter.printTasks(result);
-        System.out.println("---------END_DEV_IN_PROGRESS-------");
-        taskSearcher = new TaskSearcher(new TaskPrioritySearchStrategy());
-        System.out.println("---------HIGH_PRIORITY-------");
-        result = taskSearcher.search(taskManager.getTaskList(), TaskPriority.HIGH);
-        taskPrinter.printTasks(result);
-        System.out.println("---------END_HIGH_PRIORITY-------");
-        taskPrinter.printTasks(taskManager.getTaskList());
+        // Slight delay to ensure tasks are created
+        Thread.sleep(1000);
+
+        // Concurrently assign users and add comments
+        List<Task> tasks = taskManager.getTaskList();
+
+        for (Task task : tasks) {
+            executor.submit(() -> {
+                taskManager.assignTaskToUser(task, bob);
+                taskManager.updateTaskStatus(task, TaskStatus.DEV_IN_PROGRESS);
+                taskManager.updateTaskPriority(task, TaskPriority.MODERATE);
+
+                Comment comment = new Comment("Concurrent comment");
+                taskManager.addComment(task, comment);
+            });
+        }
+
+        executor.shutdown();
+        while (!executor.isTerminated()) {
+            Thread.sleep(500);
+        }
+
+        // Print all tasks after modification
+        System.out.println("Final task states after concurrent modifications:");
+        taskManager.getTaskList().forEach(System.out::println);
 
 
-
-        System.out.println("------END----------------");
     }
 }
